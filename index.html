@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ramah: Good news</title>
+  <meta name="description" content="A minimal, trusted good news aggregator presenting positive stories.">
+  
+  <!-- Favicon -->
+  <link rel="icon" href="public/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="public/apple-touch-icon.png">
+  <link rel="manifest" href="public/manifest.json">
+  <meta name="theme-color" content="#ffffff">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500&family=Merriweather:wght@400&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: ['class', '[data-theme="dark"]'],
+      theme: {
+        extend: {
+          fontFamily: {
+            ui: ['"IBM Plex Sans"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'sans-serif'],
+            body: ['Merriweather', 'Georgia', '"Times New Roman"', 'serif'],
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="styles/main.css">
+</head>
+<body class="min-h-screen bg-base-00 text-base-05 font-ui">
+  
+  <header class="border-b border-base-01 px-4 lg:px-8 py-6">
+    <div class="max-w-3xl mx-auto flex items-start justify-between">
+      <div>
+        <h1 class="text-2xl lg:text-3xl font-medium flex items-end gap-3">
+          <span class="text-success">△</span>
+          <span>Ramah</span>
+          <span class="text-lg lg:text-xl text-base-03 font-normal">Good news</span>
+        </h1>
+      </div>
+      
+      <label class="theme-toggle cursor-pointer" aria-label="Toggle dark mode">
+        <input type="checkbox" id="theme-toggle-input" class="sr-only">
+        <div class="toggle-track" role="switch" aria-checked="false">
+          <svg class="toggle-icon sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <svg class="toggle-icon moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </div>
+      </label>
+    </div>
+  </header>
+  
+  <main class="max-w-3xl mx-auto px-4 lg:px-8 py-8">
+    <div id="story-feed" aria-live="polite">
+      <!-- Story cards inserted here -->
+    </div>
+    
+    <div id="loading-indicator" class="flex justify-center py-8">
+      <div class="spinner" role="status" aria-label="Loading stories">
+        <span class="sr-only">Loading...</span>
+      </div>
+    </div>
+    
+    <div id="end-message" class="hidden text-center py-8 text-base-03">
+      You're all caught up!
+    </div>
+  </main>
+  
+  <div id="error-state" class="hidden min-h-screen flex items-center justify-center px-4">
+    <div class="max-w-md text-center">
+      <h2 class="text-xl font-medium mb-3">No news is good news.</h2>
+      <p class="text-base-03 mb-6">
+        Sorry, we're experiencing some issues searching the web at the moment.
+      </p>
+      <button id="retry-button" class="retry-btn">Retry</button>
+    </div>
+  </div>
+  
+  <script src="scripts/app.js"></script>
+</body>
+</html>
