@@ -4,30 +4,138 @@ let currentIndex = 0;
 const STORIES_PER_LOAD = 25;
 const DATA_URL = 'https://lewdry.github.io/ramah-data/good_news.json';
 
+// Track if stats have been calculated (lazy calculation)
+let statsCalculated = false;
+
 // Initialization
 async function init() {
   loadThemePreference();
   setupThemeToggle();
-  await fetchStories();
+  setupRouter();
+  
+  // Handle initial route
+  await handleRoute();
+}
 
-  if (stories.length > 0) {
-    hideElement('error-state');
-    hideElement('loading-indicator');
-    renderStories(STORIES_PER_LOAD);
-    setupInfiniteScroll();
+// Router
+function setupRouter() {
+  window.addEventListener('hashchange', handleRoute);
+}
+
+async function handleRoute() {
+  const hash = window.location.hash;
+  
+  if (hash === '#stats') {
+    await showStatsPage();
   } else {
-    showErrorState();
+    await showHomePage();
   }
+}
+
+async function showHomePage() {
+  hideElement('page-stats');
+  showElement('page-home');
+  hideElement('error-state');
+  
+  // Only fetch and render if not already done
+  if (stories.length === 0) {
+    await fetchStories();
+
+    if (stories.length > 0) {
+      hideElement('loading-indicator');
+      renderStories(STORIES_PER_LOAD);
+      setupInfiniteScroll();
+    } else {
+      showErrorState();
+    }
+  } else {
+    hideElement('loading-indicator');
+  }
+}
+
+async function showStatsPage() {
+  hideElement('page-home');
+  hideElement('error-state');
+  showElement('page-stats');
+  
+  // Only calculate stats when visiting the page (lazy calculation)
+  if (!statsCalculated) {
+    showElement('stats-loading');
+    hideElement('stats-content');
+    
+    // Ensure we have data
+    if (stories.length === 0) {
+      await fetchStories();
+    }
+    
+    if (stories.length > 0) {
+      calculateAndDisplayStats();
+      statsCalculated = true;
+    }
+  }
+  
+  hideElement('stats-loading');
+  showElement('stats-content');
+}
+
+function calculateAndDisplayStats() {
+  // Article count
+  const articleCount = stories.length;
+  document.getElementById('stat-article-count').textContent = articleCount.toLocaleString();
+  
+  // Sources count (sorted by count, largest first)
+  const sourceCounts = {};
+  stories.forEach(story => {
+    const source = story.source || 'Unknown';
+    sourceCounts[source] = (sourceCounts[source] || 0) + 1;
+  });
+  
+  const sortedSources = Object.entries(sourceCounts)
+    .sort((a, b) => b[1] - a[1]);
+  
+  const sourcesList = document.getElementById('stat-sources-list');
+  sourcesList.innerHTML = sortedSources.map(([source, count]) => `
+    <li class="flex justify-between items-center py-2 border-b border-base-01 last:border-0">
+      <span class="font-medium">${escapeHtml(source)}</span>
+      <span class="text-base-03">${count.toLocaleString()}</span>
+    </li>
+  `).join('');
+  
+  // Oldest article date
+  const oldestStory = stories.reduce((oldest, story) => {
+    const storyDate = new Date(story.timestamp);
+    const oldestDate = new Date(oldest.timestamp);
+    return storyDate < oldestDate ? story : oldest;
+  }, stories[0]);
+  
+  const oldestDate = new Date(oldestStory.timestamp);
+  const formattedDate = oldestDate.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+  document.getElementById('stat-oldest-date').textContent = formattedDate;
 }
 
 // Theme Management
 function loadThemePreference() {
-  let savedTheme = localStorage.getItem('ramah-theme');
+  // Check for URL parameter first (for embedded views)
+  const urlParams = new URLSearchParams(window.location.search);
+  const themeParam = urlParams.get('theme');
   
-  // If no saved preference, use system preference
-  if (!savedTheme) {
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    savedTheme = prefersDark ? 'dark' : 'light';
+  let savedTheme;
+  
+  if (themeParam === 'light' || themeParam === 'dark') {
+    // URL parameter takes precedence - don't use localStorage
+    savedTheme = themeParam;
+  } else {
+    // Fall back to localStorage or system preference
+    savedTheme = localStorage.getItem('ramah-theme');
+    
+    if (!savedTheme) {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      savedTheme = prefersDark ? 'dark' : 'light';
+    }
   }
   
   document.documentElement.setAttribute('data-theme', savedTheme);
@@ -250,5 +358,147 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
+// Embed Modal
+const EMBED_BASE_URL = 'https://lewdry.github.io/ramah';
+
+function setupEmbedModal() {
+  const modal = document.getElementById('embed-modal');
+  const openBtn = document.getElementById('embed-btn');
+  const closeBtn = document.getElementById('embed-modal-close');
+  const copyBtn = document.getElementById('embed-copy-btn');
+  
+  // Input elements
+  const widthInput = document.getElementById('embed-width');
+  const widthUnit = document.getElementById('embed-width-unit');
+  const heightInput = document.getElementById('embed-height');
+  const heightUnit = document.getElementById('embed-height-unit');
+  const themeSelect = document.getElementById('embed-theme');
+  
+  // Open modal
+  openBtn.addEventListener('click', () => {
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    updateEmbedCode();
+    updatePreview();
+  });
+  
+  // Close modal
+  const closeModal = () => {
+    modal.classList.add('hidden');
+    document.body.style.overflow = '';
+  };
+  
+  closeBtn.addEventListener('click', closeModal);
+  
+  // Close on overlay click
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      closeModal();
+    }
+  });
+  
+  // Close on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+      closeModal();
+    }
+  });
+  
+  // Update embed code on input change
+  const updateOnChange = () => {
+    updateEmbedCode();
+    updatePreview();
+  };
+  
+  widthInput.addEventListener('input', updateOnChange);
+  widthUnit.addEventListener('change', updateOnChange);
+  heightInput.addEventListener('input', updateOnChange);
+  heightUnit.addEventListener('change', updateOnChange);
+  themeSelect.addEventListener('change', updateOnChange);
+  
+  // Copy button
+  copyBtn.addEventListener('click', copyEmbedCode);
+}
+
+function getEmbedUrl() {
+  const themeSelect = document.getElementById('embed-theme');
+  const theme = themeSelect.value;
+  
+  let url = EMBED_BASE_URL;
+  
+  // Add theme parameter if not auto
+  if (theme !== 'auto') {
+    url += `?theme=${theme}`;
+  }
+  
+  return url;
+}
+
+function getEmbedDimensions() {
+  const widthInput = document.getElementById('embed-width');
+  const widthUnit = document.getElementById('embed-width-unit');
+  const heightInput = document.getElementById('embed-height');
+  const heightUnit = document.getElementById('embed-height-unit');
+  
+  const width = `${widthInput.value}${widthUnit.value}`;
+  const height = `${heightInput.value}${heightUnit.value}`;
+  
+  return { width, height };
+}
+
+function generateEmbedCode() {
+  const url = getEmbedUrl();
+  const { width, height } = getEmbedDimensions();
+  
+  return `<iframe src="${url}" width="${width}" height="${height}" style="border:none;" title="Ramah: Good news" loading="lazy"></iframe>`;
+}
+
+function updateEmbedCode() {
+  const codeElement = document.getElementById('embed-code');
+  codeElement.textContent = generateEmbedCode();
+}
+
+function updatePreview() {
+  const preview = document.getElementById('embed-preview');
+  const url = getEmbedUrl();
+  
+  preview.innerHTML = `<iframe src="${url}" title="Ramah preview" loading="lazy"></iframe>`;
+}
+
+async function copyEmbedCode() {
+  const code = generateEmbedCode();
+  const copyBtn = document.getElementById('embed-copy-btn');
+  const copyIcon = document.getElementById('copy-icon');
+  const checkIcon = document.getElementById('check-icon');
+  const copyText = document.getElementById('copy-text');
+  
+  try {
+    await navigator.clipboard.writeText(code);
+    
+    // Show success state
+    copyBtn.classList.add('copied');
+    copyIcon.classList.add('hidden');
+    checkIcon.classList.remove('hidden');
+    copyText.textContent = 'Copied!';
+    
+    // Reset after 2 seconds
+    setTimeout(() => {
+      copyBtn.classList.remove('copied');
+      copyIcon.classList.remove('hidden');
+      checkIcon.classList.add('hidden');
+      copyText.textContent = 'Copy';
+    }, 2000);
+  } catch (err) {
+    console.error('Failed to copy embed code:', err);
+    copyText.textContent = 'Failed';
+    setTimeout(() => {
+      copyText.textContent = 'Copy';
+    }, 2000);
+  }
+}
+
 // Initialize on load
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', () => {
+  init();
+  setupEmbedModal();
+});

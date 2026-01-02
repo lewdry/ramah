@@ -18,6 +18,8 @@ A minimal, client-side *good news* aggregator that surfaces positive stories in 
 - Infinite scroll (loads 25 stories per batch).
 - Positivity indicator (△ / △△ / △△△) derived from sentiment `mean_score`.
 - Theme toggle (light/dark) with preference persisted to `localStorage`.
+- **Stats page**: View article count, source breakdown, and oldest article date.
+- **Embed capability**: Generate customizable embed code to iframe Ramah on other sites.
 - Accessible: keyboard operable story cards (Enter / Space to open), ARIA attributes, and focus styles.
 - Graceful error state with a retry button when the data fetch fails.
 
@@ -48,7 +50,38 @@ If the feed fails to load or returns invalid data, the app shows a friendly erro
   - score ≥ 0.2 → △
   - otherwise → no indicator
 - Theme preference key: `ramah-theme`.
+### Stats Page
 
+Click the **Stats** link in the header to view:
+- Total article count
+- Article count by source (sorted by frequency)
+- Oldest article date in the feed
+
+Stats are calculated lazily on first visit for performance.
+
+### Embed
+
+Click the **Embed** link in the header to open the embed modal where you can:
+- Customize width (default: `100%`, supports `%` or `px` units)
+- Customize height (default: `600px`, supports `px` or `%` units)
+- Select theme (auto, light, or dark)
+- Preview the embed live
+- Copy the generated `<iframe>` code
+
+**Example embed code:**
+```html
+<iframe src="https://lewdry.github.io/ramah" width="100%" height="600px" style="border:none;" title="Ramah - Good news" loading="lazy"></iframe>
+```
+
+**With forced dark theme:**
+```html
+<iframe src="https://lewdry.github.io/ramah?theme=dark" width="100%" height="600px" style="border:none;" title="Ramah - Good news" loading="lazy"></iframe>
+```
+
+URL parameters:
+- `?theme=light` — Force light theme
+- `?theme=dark` — Force dark theme
+- (Omit for auto, which respects the system/user preference)
 ## Run locally ⚡
 
 This is a static site — you can open `index.html` directly, but to avoid CORS issues when fetching the JSON it's best to run a simple local server:

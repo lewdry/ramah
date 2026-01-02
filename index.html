@@ -1,10 +1,30 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ramah: Good news</title>
   <meta name="description" content="A minimal, trusted good news aggregator presenting positive stories.">
+  
+  <!-- Prevent theme flash: set data-theme before any rendering -->
+  <script>
+    (function() {
+      var params = new URLSearchParams(window.location.search);
+      var theme = params.get('theme');
+      if (theme === 'light' || theme === 'dark') {
+        document.documentElement.setAttribute('data-theme', theme);
+      } else {
+        var saved = localStorage.getItem('ramah-theme');
+        if (saved) {
+          document.documentElement.setAttribute('data-theme', saved);
+        } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        } else {
+          document.documentElement.setAttribute('data-theme', 'light');
+        }
+      }
+    })();
+  </script>
   
   <!-- Favicon -->
   <link rel="icon" href="public/favicon.svg" type="image/svg+xml">
@@ -18,7 +38,8 @@
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500&family=Merriweather:wght@400&display=swap" rel="stylesheet">
   
   <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script>window.tailwind = { config: {} };</script>
+  <script src="https://cdn.tailwindcss.com?plugins="></script>
   <script>
     tailwind.config = {
       darkMode: ['class', '[data-theme="dark"]'],
@@ -42,47 +63,101 @@
     <div class="max-w-3xl mx-auto flex items-start justify-between">
       <div>
         <h1 class="text-2xl lg:text-3xl font-medium flex items-end gap-3">
-          <span class="text-success">△</span>
-          <span>Ramah</span>
-          <span class="text-lg lg:text-xl text-base-03 font-normal">Good news</span>
+          <a href="#" class="flex items-end gap-3 hover:opacity-80 transition-opacity">
+            <span class="text-success">△</span>
+            <span>Ramah</span>
+            <span class="text-lg lg:text-xl text-base-03 font-normal">Good news</span>
+          </a>
         </h1>
       </div>
       
-      <label class="theme-toggle cursor-pointer" aria-label="Toggle dark mode">
-        <input type="checkbox" id="theme-toggle-input" class="sr-only">
-        <div class="toggle-track" role="switch" aria-checked="false">
-          <svg class="toggle-icon sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="12" cy="12" r="5"></circle>
-            <line x1="12" y1="1" x2="12" y2="3"></line>
-            <line x1="12" y1="21" x2="12" y2="23"></line>
-            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-            <line x1="1" y1="12" x2="3" y2="12"></line>
-            <line x1="21" y1="12" x2="23" y2="12"></line>
-            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-          </svg>
-          <svg class="toggle-icon moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-          </svg>
-        </div>
-      </label>
+      <div class="flex items-center gap-4">
+        <button id="embed-btn" class="text-base-03 hover:text-base-05 transition-colors text-sm" aria-label="Get embed code">
+          Embed
+        </button>
+        <a href="#stats" class="text-base-03 hover:text-base-05 transition-colors text-sm" aria-label="View statistics">
+          Stats
+        </a>
+        
+        <label class="theme-toggle cursor-pointer" aria-label="Toggle dark mode">
+          <input type="checkbox" id="theme-toggle-input" class="sr-only">
+          <div class="toggle-track" role="switch" aria-checked="false">
+            <svg class="toggle-icon sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+            <svg class="toggle-icon moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+          </div>
+        </label>
+      </div>
     </div>
   </header>
   
   <main class="max-w-3xl mx-auto px-4 lg:px-8 py-8">
-    <div id="story-feed" aria-live="polite">
-      <!-- Story cards inserted here -->
-    </div>
-    
-    <div id="loading-indicator" class="flex justify-center py-8">
-      <div class="spinner" role="status" aria-label="Loading stories">
-        <span class="sr-only">Loading...</span>
+    <!-- Home Page (Story Feed) -->
+    <div id="page-home">
+      <div id="story-feed" aria-live="polite">
+        <!-- Story cards inserted here -->
+      </div>
+      
+      <div id="loading-indicator" class="flex justify-center py-8">
+        <div class="spinner" role="status" aria-label="Loading stories">
+          <span class="sr-only">Loading...</span>
+        </div>
+      </div>
+      
+      <div id="end-message" class="hidden text-center py-8 text-base-03">
+        You're all caught up!
       </div>
     </div>
-    
-    <div id="end-message" class="hidden text-center py-8 text-base-03">
-      You're all caught up!
+
+    <!-- Stats Page -->
+    <div id="page-stats" class="hidden">
+      <div class="mb-8">
+        <a href="#" class="text-base-03 hover:text-base-05 transition-colors text-sm flex items-center gap-2">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          Back to feed
+        </a>
+      </div>
+      
+      <h2 class="text-2xl lg:text-3xl font-medium mb-8">Stats</h2>
+      
+      <div id="stats-loading" class="flex justify-center py-8">
+        <div class="spinner" role="status" aria-label="Loading stats">
+          <span class="sr-only">Loading stats...</span>
+        </div>
+      </div>
+      
+      <div id="stats-content" class="hidden space-y-8">
+        <div class="stat-card">
+          <h3 class="text-base-03 text-sm uppercase tracking-wide mb-2">Articles</h3>
+          <p id="stat-article-count" class="text-3xl font-medium">—</p>
+        </div>
+        
+        <div class="stat-card">
+          <h3 class="text-base-03 text-sm uppercase tracking-wide mb-2">Sources</h3>
+          <ul id="stat-sources-list" class="space-y-2">
+            <!-- Source counts inserted here -->
+          </ul>
+        </div>
+        
+        <div class="stat-card">
+          <h3 class="text-base-03 text-sm uppercase tracking-wide mb-2">Oldest Article</h3>
+          <p id="stat-oldest-date" class="text-xl font-medium">—</p>
+        </div>
+      </div>
     </div>
   </main>
   
@@ -96,6 +171,82 @@
     </div>
   </div>
   
+  <!-- Embed Modal -->
+  <div id="embed-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="embed-modal-title">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="embed-modal-title" class="text-xl font-medium">Embed Ramah's Good News Feed</h2>
+        <button id="embed-modal-close" class="modal-close" aria-label="Close modal">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <p class="text-base-03 text-sm mb-6">Customize and copy the embed code to add Ramah to your website.</p>
+        
+        <div class="embed-options">
+          <div class="embed-option">
+            <label for="embed-width" class="embed-label">Width</label>
+            <div class="embed-input-group">
+              <input type="number" id="embed-width" class="embed-input" value="100" min="200" max="2000">
+              <select id="embed-width-unit" class="embed-select">
+                <option value="%" selected>%</option>
+                <option value="px">px</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="embed-option">
+            <label for="embed-height" class="embed-label">Height</label>
+            <div class="embed-input-group">
+              <input type="number" id="embed-height" class="embed-input" value="600" min="200" max="2000">
+              <select id="embed-height-unit" class="embed-select">
+                <option value="px" selected>px</option>
+                <option value="%">%</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="embed-option">
+            <label for="embed-theme" class="embed-label">Theme</label>
+            <select id="embed-theme" class="embed-select embed-select-full">
+              <option value="auto" selected>Auto (follows system)</option>
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="embed-preview-section">
+          <label class="embed-label">Preview</label>
+          <div id="embed-preview" class="embed-preview">
+            <!-- Preview iframe inserted here -->
+          </div>
+        </div>
+        
+        <div class="embed-code-section">
+          <label class="embed-label">Embed Code</label>
+          <div class="embed-code-wrapper">
+            <code id="embed-code" class="embed-code"></code>
+            <button id="embed-copy-btn" class="embed-copy-btn" aria-label="Copy embed code">
+              <svg id="copy-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              <svg id="check-icon" class="hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <span id="copy-text">Copy</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="scripts/app.js"></script>
 </body>
 </html>
