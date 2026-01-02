@@ -1,4 +1,4 @@
-# Ramah — Good news 🚩
+# Ramah: Good news 🚩
 
 A minimal, client-side *good news* aggregator that surfaces positive stories in reverse-chronological order.
 
