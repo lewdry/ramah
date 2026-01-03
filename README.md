@@ -21,8 +21,7 @@ Ramah is a good news aggregator that collects uplifting stories from around the 
 
 - **Positive stories** from trusted news sources
 - **Recent updates** with the newest good news first
-- **Positivity ratings** shown with triangles (△ / △△ / △△△) - the more triangles, the more uplifting the story!
-- **Easy browsing** - just scroll to see more stories
+- **Positivity ratings** shown with triangles (△ / △△ / △△△), the more the better
 - **Dark and light themes** to match your preference
 - **Story stats** to see how much good news we've shared
 
@@ -30,21 +29,9 @@ Ramah is a good news aggregator that collects uplifting stories from around the 
 
 **Endless good news**: Keep scrolling and we'll keep showing you more positive stories.
 
-**Choose your look**: Switch between light and dark themes with the toggle button, your choice is remembered for next time.
-
-**See the big picture**: Click "Stats" to see how many good news stories we've collected and where they come from.
-
 **Share the positivity**: Use our "Embed" feature to add Ramah to your own website and spread the good news.
 
 **Get the data**: Want to use our good news data in your own project? Click "Get Data" to access our feeds in JSON and RSS formats.
-
-**Mobile-friendly**: Read your good news anywhere. Ramah works great on phones, tablets and computers.
-
-## Our promise to you 🤝
-
-We believe everyone deserves to start their day with something positive. While we don't write the news ourselves, we carefully curate stories that highlight human kindness, scientific breakthroughs, environmental wins and other uplifting developments from around the world.
-
-All stories link directly to the original articles on the publisher's websites, so you can read the full story and support quality journalism.
 
 ## Content disclaimer ⚖️
 
@@ -54,11 +41,8 @@ All content rights remain with the respective publishers.
 
 ## Questions or feedback?
 
-We'd love to hear from you! This project is built with care to help people find more positivity in their daily news consumption.
+We'd love to hear from you. This project is built with care to help people find more positivity in their daily news consumption.
 
 ---
 
 Built with 🤖 to help you enjoy the good news
-
-© 2026 Lewis Dryburgh
-

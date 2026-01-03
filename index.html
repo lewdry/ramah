@@ -133,6 +133,15 @@
         </svg>
         <span>Embed</span>
       </button>
+
+      <button id="about-btn" class="menu-item" aria-label="About Ramah">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="16" x2="12" y2="12"></line>
+          <line x1="12" y1="8" x2="12.01" y2="8"></line>
+        </svg>
+        <span>About</span>
+      </button>
       
       <div class="menu-item menu-theme-item">
         <div class="menu-theme-label">
@@ -306,6 +315,37 @@
               <polyline points="7 7 17 7 17 17"></polyline>
             </svg>
           </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- About Modal -->
+  <div id="about-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="about-modal-title">
+    <div class="modal-content modal-content-large">
+      <div class="modal-header">
+        <h2 id="about-modal-title" class="text-xl font-medium">About</h2>
+        <button id="about-modal-close" class="modal-close" aria-label="Close modal">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div id="about-loading" class="flex justify-center py-8">
+          <div class="spinner" role="status" aria-label="Loading about content">
+            <span class="sr-only">Loading...</span>
+          </div>
+        </div>
+        
+        <div id="about-content" class="hidden about-content prose">
+          <!-- About content loaded from README -->
+        </div>
+        
+        <div id="about-error" class="hidden text-center py-8">
+          <p class="text-base-03">Unable to load content. Please try again later.</p>
         </div>
       </div>
     </div>

@@ -38,6 +38,8 @@ async function handleRoute() {
     await showEmbedPage();
   } else if (hash === '#get-data') {
     await showGetDataPage();
+  } else if (hash === '#about') {
+    await showAboutPage();
   } else {
     await showHomePage();
   }
@@ -48,6 +50,7 @@ async function showHomePage() {
   closeStatsModal();
   closeEmbedModal();
   closeGetDataModal();
+  closeAboutModal();
   showElement('page-home');
   hideElement('error-state');
   
@@ -134,6 +137,87 @@ async function showGetDataPage() {
   // Move focus into modal for accessibility
   const closeBtn = document.getElementById('get-data-modal-close');
   if (closeBtn) closeBtn.focus();
+}
+
+// Track if about content has been loaded
+let aboutContentLoaded = false;
+
+async function showAboutPage() {
+  // Ensure homepage is shown but hidden behind modal
+  showElement('page-home');
+  
+  // Open about modal
+  const modal = document.getElementById('about-modal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  // Load content if not already loaded
+  if (!aboutContentLoaded) {
+    showElement('about-loading');
+    hideElement('about-content');
+    hideElement('about-error');
+    
+    try {
+      const response = await fetch('https://raw.githubusercontent.com/lewdry/ramah/refs/heads/main/README.md');
+      if (!response.ok) throw new Error('Failed to fetch README');
+      
+      const markdown = await response.text();
+      const html = parseMarkdown(markdown);
+      
+      document.getElementById('about-content').innerHTML = html;
+      aboutContentLoaded = true;
+      
+      hideElement('about-loading');
+      showElement('about-content');
+    } catch (error) {
+      console.error('Failed to load about content:', error);
+      hideElement('about-loading');
+      showElement('about-error');
+    }
+  } else {
+    hideElement('about-loading');
+    showElement('about-content');
+  }
+
+  // Move focus into modal for accessibility
+  const closeBtn = document.getElementById('about-modal-close');
+  if (closeBtn) closeBtn.focus();
+}
+
+// Simple markdown parser for README content
+function parseMarkdown(markdown) {
+  let html = markdown
+    // Escape HTML first
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    // Code blocks (before other processing)
+    .replace(/```[\s\S]*?```/g, '')
+    // Headers
+    .replace(/^### (.+)$/gm, '<h4>$1</h4>')
+    .replace(/^## (.+)$/gm, '<h3>$1</h3>')
+    .replace(/^# (.+)$/gm, '<h2>$1</h2>')
+    // Bold
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    // Italic
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    // Links
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
+    // Unordered lists
+    .replace(/^- (.+)$/gm, '<li>$1</li>')
+    // Horizontal rules
+    .replace(/^---$/gm, '<hr>')
+    // Paragraphs (lines that aren't already wrapped)
+    .replace(/^(?!<[hlu]|<li|<hr)(.+)$/gm, '<p>$1</p>')
+    // Wrap consecutive li elements in ul
+    .replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>')
+    // Clean up empty paragraphs
+    .replace(/<p><\/p>/g, '')
+    .replace(/<p>\s*<\/p>/g, '');
+  
+  return html;
 }
 
 function calculateAndDisplayStats() {
@@ -609,6 +693,17 @@ function closeGetDataModal() {
   }
 }
 
+function closeAboutModal() {
+  const modal = document.getElementById('about-modal');
+  if (modal) modal.classList.add('hidden');
+  document.body.style.overflow = '';
+
+  // Remove #about hash without creating a new history entry
+  if (window.location.hash === '#about') {
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+  }
+}
+
 function setupStatsModal() {
   const modal = document.getElementById('stats-modal');
   if (!modal) return;
@@ -806,6 +901,41 @@ function setupGetDataModal() {
   });
 }
 
+// About Modal
+function setupAboutModal() {
+  const modal = document.getElementById('about-modal');
+  const openBtn = document.getElementById('about-btn');
+  const closeBtn = document.getElementById('about-modal-close');
+  
+  if (!modal || !openBtn || !closeBtn) return;
+  
+  // Open modal
+  openBtn.addEventListener('click', () => {
+    window.location.hash = '#about';
+  });
+  
+  // Close modal
+  const closeModal = () => {
+    window.location.hash = '#';
+  };
+  
+  closeBtn.addEventListener('click', closeModal);
+  
+  // Close on overlay click
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      closeModal();
+    }
+  });
+  
+  // Close on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+      closeModal();
+    }
+  });
+}
+
 // Initialize on load
 document.addEventListener('DOMContentLoaded', () => {
   init();
@@ -813,4 +943,5 @@ document.addEventListener('DOMContentLoaded', () => {
   setupEmbedModal();
   setupStatsModal();
   setupGetDataModal();
+  setupAboutModal();
 });
