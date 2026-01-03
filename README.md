@@ -1,8 +1,4 @@
-# Ramah: Good news 🚩
-
-[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-
-A minimal, client-side *good news* aggregator that surfaces positive stories in reverse-chronological order.
+# About Ramah 🌟
 
 ```
 ██████╗  █████╗ ███╗   ███╗ █████╗ ██╗  ██╗
@@ -13,104 +9,56 @@ A minimal, client-side *good news* aggregator that surfaces positive stories in 
 ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝
 ```
 
-## Key features ✅
+Welcome to your daily dose of good news. In a world filled with overwhelming headlines, Ramah is here to brighten your day by bringing you only the positive stories that matter.
 
-- Pure static frontend: Vanilla JavaScript + Tailwind CSS (via CDN).
-- Fetches a public JSON feed and shows stories in reverse-chronological order.
-- Infinite scroll (loads 25 stories per batch).
-- Positivity indicator (△ / △△ / △△△) derived from sentiment `mean_score`.
-- Theme toggle (light/dark) with preference persisted to `localStorage`.
-- **Stats page**: View article count, source breakdown, and oldest article date.
-- **Embed capability**: Generate customizable embed code to iframe Ramah on other sites.
-- Accessible: keyboard operable story cards (Enter / Space to open), ARIA attributes, and focus styles.
-- Graceful error state with a retry button when the data fetch fails.
+## What is Ramah? ✨
 
-## Data source 🔗
+**ramah** (*Indonesian, adj.)*: friendly; agreeable.
 
-Ramah consumes a JSON feed hosted at:
+Ramah is a good news aggregator that collects uplifting stories from around the web and presents them in a clean, easy-to-read format. Think of it as your personal sunshine in the often cloudy world of news.
 
-https://lewdry.github.io/ramah-data/good_news.json
+## What you'll find here 📰
 
-The app expects an array of story objects with the following fields (as used by `scripts/app.js`):
+- **Positive stories** from trusted news sources
+- **Recent updates** with the newest good news first
+- **Positivity ratings** shown with triangles (△ / △△ / △△△) - the more triangles, the more uplifting the story!
+- **Easy browsing** - just scroll to see more stories
+- **Dark and light themes** to match your preference
+- **Story stats** to see how much good news we've shared
 
-- `headline` (String)
-- `first_sentence` (String)
-- `link` (String) — the URL opened when a card is activated
-- `source` (String)
-- `timestamp` (ISO 8601 string)
-- `mean_score` (Number 0.0–1.0)
+## Features that make browsing a joy 🎉
 
-If the feed fails to load or returns invalid data, the app shows a friendly error view and a **Retry** button.
+**Endless good news**: Keep scrolling and we'll keep showing you more positive stories.
 
-## How it works (implementation notes) 🔧
+**Choose your look**: Switch between light and dark themes with the toggle button, your choice is remembered for next time.
 
-- On load the app fetches the entire JSON feed, sorts by `timestamp` descending, and renders the first 25 stories.
-- Scrolling near the bottom appends the next 25 stories until the feed is exhausted, then displays “You’re all caught up!”
-- Positivity mapping (in `scripts/app.js`):
-  - score ≥ 0.7 → △△△
-  - score ≥ 0.4 → △△
-  - score ≥ 0.2 → △
-  - otherwise → no indicator
-- Theme preference key: `ramah-theme`.
-### Stats Page
+**See the big picture**: Click "Stats" to see how many good news stories we've collected and where they come from.
 
-Click the **Stats** link in the header to view:
-- Total article count
-- Article count by source (sorted by frequency)
-- Oldest article date in the feed
+**Share the positivity**: Use our "Embed" feature to add Ramah to your own website and spread the good news.
 
-Stats are calculated lazily on first visit for performance.
+**Get the data**: Want to use our good news data in your own project? Click "Get Data" to access our feeds in JSON and RSS formats.
 
-### Embed
+**Mobile-friendly**: Read your good news anywhere. Ramah works great on phones, tablets and computers.
 
-Click the **Embed** link in the header to open the embed modal where you can:
-- Customize width (default: `100%`, supports `%` or `px` units)
-- Customize height (default: `600px`, supports `px` or `%` units)
-- Select theme (auto, light, or dark)
-- Preview the embed live
-- Copy the generated `<iframe>` code
+## Our promise to you 🤝
 
-**Example embed code:**
-```html
-<iframe src="https://lewdry.github.io/ramah" width="100%" height="600px" style="border:none;" title="Ramah - Good news" loading="lazy"></iframe>
-```
+We believe everyone deserves to start their day with something positive. While we don't write the news ourselves, we carefully curate stories that highlight human kindness, scientific breakthroughs, environmental wins and other uplifting developments from around the world.
 
-**With forced dark theme:**
-```html
-<iframe src="https://lewdry.github.io/ramah?theme=dark" width="100%" height="600px" style="border:none;" title="Ramah - Good news" loading="lazy"></iframe>
-```
+All stories link directly to the original articles on the publisher's websites, so you can read the full story and support quality journalism.
 
-URL parameters:
-- `?theme=light` — Force light theme
-- `?theme=dark` — Force dark theme
-- (Omit for auto, which respects the system/user preference)
-## Run locally ⚡
+## Content disclaimer ⚖️
 
-This is a static site — you can open `index.html` directly, but to avoid CORS issues when fetching the JSON it's best to run a simple local server:
+Ramah does not claim ownership of the news content provided in this feed. Each item contains only brief extracts (headline and first sentence) and links directly to the original article on the publisher's website.
 
-- Python 3: `python3 -m http.server 8000` → open http://localhost:8000
-- Node (serve): `npx serve .` → follow the printed URL
+All content rights remain with the respective publishers.
 
-No build step required; just edit `scripts/app.js`, `styles/main.css`, or `index.html` and refresh the browser.
+## Questions or feedback?
 
-## Important files 📁
-
-- `index.html` — app shell & markup
-- `scripts/app.js` — core client logic (fetching, rendering, infinite scroll, theme)
-- `styles/main.css` — small custom CSS on top of Tailwind
-- `public/` — favicon, manifest
-
-## Contributing ✨
-
-Contributions are welcome. Open an issue or a PR against the `lewdry/ramah` repository with proposed changes.
-
-## License 📜
-
-This project is licensed under the MIT License, see the `LICENSE` file for details.
-
-© 2026 Lewis Dryburgh
+We'd love to hear from you! This project is built with care to help people find more positivity in their daily news consumption.
 
 ---
 
-Built with ❤️ enjoy the good news!
+Built with 🤖 to help you enjoy the good news
+
+© 2026 Lewis Dryburgh
 
