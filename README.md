@@ -1,5 +1,7 @@
 # Ramah: Good news 🚩
 
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
 A minimal, client-side *good news* aggregator that surfaces positive stories in reverse-chronological order.
 
 ```
@@ -102,7 +104,13 @@ No build step required; just edit `scripts/app.js`, `styles/main.css`, or `index
 
 Contributions are welcome. Open an issue or a PR against the `lewdry/ramah` repository with proposed changes.
 
+## License 📜
+
+This project is licensed under the MIT License, see the `LICENSE` file for details.
+
+© 2026 Lewis Dryburgh
+
 ---
 
-Built with ❤️ — enjoy the good news!
+Built with ❤️ enjoy the good news!
 
