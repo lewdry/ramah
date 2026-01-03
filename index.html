@@ -242,7 +242,7 @@
     <div class="max-w-md text-center">
       <h2 class="text-xl font-medium mb-3">No news is good news.</h2>
       <p class="text-base-03 mb-6">
-        Sorry, we're experiencing some issues searching the web at the moment.
+        Sorry, we're experiencing some issues retrieving our feed.
       </p>
       <button id="retry-button" class="retry-btn">Retry</button>
     </div>
@@ -263,8 +263,8 @@
       
       <div class="modal-body">
         <div class="data-intro space-y-4 mb-6">
-          <p class="text-base-05">Do you need good news data? A placeholder feed of real news that won't upset or offend?</p>
-          <p class="text-base-05">Ramah provides a feed of good news (an average Vader and Textblob sentiment score of >0.3) from a range of trusted sources.</p>
+          <p class="text-base-05">Need good news data? A placeholder feed of real news that doesn't upset?</p>
+          <p class="text-base-05">Ramah is feed of good news (an average headline sentiment score of >0.3) from a range of trusted news sources.</p>
           <p class="text-base-03 text-sm">Ramah holds upto 250 stories (headline and first sentence) and is updated hourly.</p>
         </div>
         
@@ -325,7 +325,7 @@
       </div>
       
       <div class="modal-body">
-        <p class="text-base-03 text-sm mb-6">Customise and copy the embed code to add Ramah to your website.</p>
+        <p class="text-base-03 text-sm mb-6">Customise and copy the embed code to add good news to your website.</p>
         
         <div class="embed-options">
           <div class="embed-option">
@@ -357,6 +357,13 @@
               <option value="light">Light</option>
               <option value="dark">Dark</option>
             </select>
+          </div>
+          
+          <div class="embed-option">
+            <label class="embed-checkbox-label">
+              <input type="checkbox" id="embed-border-enabled" class="embed-checkbox">
+              <span>Add border</span>
+            </label>
           </div>
         </div>
         

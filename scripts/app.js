@@ -34,14 +34,20 @@ async function handleRoute() {
   
   if (hash === '#stats') {
     await showStatsPage();
+  } else if (hash === '#embed') {
+    await showEmbedPage();
+  } else if (hash === '#get-data') {
+    await showGetDataPage();
   } else {
     await showHomePage();
   }
 }
 
 async function showHomePage() {
-  // Close stats modal if open
+  // Close all modals if open
   closeStatsModal();
+  closeEmbedModal();
+  closeGetDataModal();
   showElement('page-home');
   hideElement('error-state');
   
@@ -62,6 +68,9 @@ async function showHomePage() {
 }
 
 async function showStatsPage() {
+  // Ensure homepage is shown but hidden behind modal
+  showElement('page-home');
+  
   // Open stats modal
   const modal = document.getElementById('stats-modal');
   if (modal) {
@@ -90,6 +99,40 @@ async function showStatsPage() {
 
   // Move focus into modal for accessibility
   const closeBtn = document.getElementById('stats-modal-close');
+  if (closeBtn) closeBtn.focus();
+}
+
+async function showEmbedPage() {
+  // Ensure homepage is shown but hidden behind modal
+  showElement('page-home');
+  
+  // Open embed modal
+  const modal = document.getElementById('embed-modal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    updateEmbedCode();
+    updatePreview();
+  }
+
+  // Move focus into modal for accessibility
+  const closeBtn = document.getElementById('embed-modal-close');
+  if (closeBtn) closeBtn.focus();
+}
+
+async function showGetDataPage() {
+  // Ensure homepage is shown but hidden behind modal
+  showElement('page-home');
+  
+  // Open get-data modal
+  const modal = document.getElementById('get-data-modal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  // Move focus into modal for accessibility
+  const closeBtn = document.getElementById('get-data-modal-close');
   if (closeBtn) closeBtn.focus();
 }
 
@@ -482,19 +525,16 @@ function setupEmbedModal() {
   const heightInput = document.getElementById('embed-height');
   const heightUnit = document.getElementById('embed-height-unit');
   const themeSelect = document.getElementById('embed-theme');
+  const borderEnabledCheckbox = document.getElementById('embed-border-enabled');
   
   // Open modal
   openBtn.addEventListener('click', () => {
-    modal.classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
-    updateEmbedCode();
-    updatePreview();
+    window.location.hash = '#embed';
   });
   
   // Close modal
   const closeModal = () => {
-    modal.classList.add('hidden');
-    document.body.style.overflow = '';
+    window.location.hash = '#';
   };
   
   closeBtn.addEventListener('click', closeModal);
@@ -511,6 +551,12 @@ function setupEmbedModal() {
     if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
       closeModal();
     }
+  });
+  
+  // Handle border checkbox toggle
+  borderEnabledCheckbox.addEventListener('change', () => {
+    updateEmbedCode();
+    updatePreview();
   });
   
   // Update embed code on input change
@@ -541,15 +587,36 @@ function closeStatsModal() {
   }
 }
 
+function closeEmbedModal() {
+  const modal = document.getElementById('embed-modal');
+  if (modal) modal.classList.add('hidden');
+  document.body.style.overflow = '';
+
+  // Remove #embed hash without creating a new history entry
+  if (window.location.hash === '#embed') {
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+  }
+}
+
+function closeGetDataModal() {
+  const modal = document.getElementById('get-data-modal');
+  if (modal) modal.classList.add('hidden');
+  document.body.style.overflow = '';
+
+  // Remove #get-data hash without creating a new history entry
+  if (window.location.hash === '#get-data') {
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+  }
+}
+
 function setupStatsModal() {
   const modal = document.getElementById('stats-modal');
   if (!modal) return;
 
   const closeBtn = document.getElementById('stats-modal-close');
 
-  const closeModal = async () => {
-    closeStatsModal();
-    await showHomePage();
+  const closeModal = () => {
+    window.location.hash = '#';
   };
 
   closeBtn.addEventListener('click', closeModal);
@@ -591,11 +658,26 @@ function getEmbedDimensions() {
   return { width, height };
 }
 
+function getEmbedBorderStyle() {
+  const borderEnabledCheckbox = document.getElementById('embed-border-enabled');
+  
+  if (!borderEnabledCheckbox.checked) {
+    return 'border:none;';
+  }
+  
+  // Get current theme
+  const theme = document.documentElement.getAttribute('data-theme') || 'light';
+  const borderColor = theme === 'dark' ? '#c5c8c6' : '#4d4d4c'; // off-white for dark, dark grey for light
+  
+  return `border:1px solid ${borderColor};`;
+}
+
 function generateEmbedCode() {
   const url = getEmbedUrl();
   const { width, height } = getEmbedDimensions();
+  const borderStyle = getEmbedBorderStyle();
   
-  return `<iframe src="${url}" width="${width}" height="${height}" style="border:none;" title="Ramah: Good news" loading="lazy"></iframe>`;
+  return `<iframe src="${url}" width="${width}" height="${height}" style="${borderStyle}" title="Ramah: Good news" loading="lazy"></iframe>`;
 }
 
 function updateEmbedCode() {
@@ -606,8 +688,9 @@ function updateEmbedCode() {
 function updatePreview() {
   const preview = document.getElementById('embed-preview');
   const url = getEmbedUrl();
+  const borderStyle = getEmbedBorderStyle();
   
-  preview.innerHTML = `<iframe src="${url}" title="Ramah preview" loading="lazy"></iframe>`;
+  preview.innerHTML = `<iframe src="${url}" title="Ramah preview" loading="lazy" style="${borderStyle}"></iframe>`;
 }
 
 async function copyEmbedCode() {
@@ -698,15 +781,12 @@ function setupGetDataModal() {
   
   // Open modal
   openBtn.addEventListener('click', () => {
-    modal.classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
-    closeBtn.focus();
+    window.location.hash = '#get-data';
   });
   
   // Close modal
   const closeModal = () => {
-    modal.classList.add('hidden');
-    document.body.style.overflow = '';
+    window.location.hash = '#';
   };
   
   closeBtn.addEventListener('click', closeModal);
