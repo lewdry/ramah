@@ -688,10 +688,49 @@ function setupMenuPanel() {
   });
 }
 
+// Get Data Modal
+function setupGetDataModal() {
+  const modal = document.getElementById('get-data-modal');
+  const openBtn = document.getElementById('get-data-btn');
+  const closeBtn = document.getElementById('get-data-modal-close');
+  
+  if (!modal || !openBtn || !closeBtn) return;
+  
+  // Open modal
+  openBtn.addEventListener('click', () => {
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    closeBtn.focus();
+  });
+  
+  // Close modal
+  const closeModal = () => {
+    modal.classList.add('hidden');
+    document.body.style.overflow = '';
+  };
+  
+  closeBtn.addEventListener('click', closeModal);
+  
+  // Close on overlay click
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      closeModal();
+    }
+  });
+  
+  // Close on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+      closeModal();
+    }
+  });
+}
+
 // Initialize on load
 document.addEventListener('DOMContentLoaded', () => {
   init();
   setupMenuPanel();
   setupEmbedModal();
   setupStatsModal();
+  setupGetDataModal();
 });
