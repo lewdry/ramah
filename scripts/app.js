@@ -1,11 +1,18 @@
 // App state (in-memory only)
 let stories = [];
+let dataMetadata = {}; // Store metadata like last_run
 let currentIndex = 0;
 const STORIES_PER_LOAD = 25;
 const DATA_URL = 'https://lewdry.github.io/ramah-data/good_news.json';
 
 // Track if stats have been calculated (lazy calculation)
 let statsCalculated = false;
+
+// Track if more stories are being loaded (debounce infinite scroll)
+let isLoadingMore = false;
+
+// Intersection Observer for infinite scroll
+let scrollObserver = null;
 
 // Initialization
 async function init() {
@@ -33,7 +40,8 @@ async function handleRoute() {
 }
 
 async function showHomePage() {
-  hideElement('page-stats');
+  // Close stats modal if open
+  closeStatsModal();
   showElement('page-home');
   hideElement('error-state');
   
@@ -54,31 +62,61 @@ async function showHomePage() {
 }
 
 async function showStatsPage() {
-  hideElement('page-home');
-  hideElement('error-state');
-  showElement('page-stats');
-  
-  // Only calculate stats when visiting the page (lazy calculation)
+  // Open stats modal
+  const modal = document.getElementById('stats-modal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  showElement('stats-loading');
+  hideElement('stats-content');
+
+  // Only calculate stats when opening the modal (lazy calculation)
   if (!statsCalculated) {
-    showElement('stats-loading');
-    hideElement('stats-content');
-    
     // Ensure we have data
     if (stories.length === 0) {
       await fetchStories();
     }
-    
+
     if (stories.length > 0) {
       calculateAndDisplayStats();
       statsCalculated = true;
     }
   }
-  
+
   hideElement('stats-loading');
   showElement('stats-content');
+
+  // Move focus into modal for accessibility
+  const closeBtn = document.getElementById('stats-modal-close');
+  if (closeBtn) closeBtn.focus();
 }
 
 function calculateAndDisplayStats() {
+  // Last Updated - use last run metadata, fall back to most recent story
+  let lastUpdatedText = 'Unknown';
+  if (dataMetadata['last run']) {
+    try {
+      lastUpdatedText = formatRelativeTime(dataMetadata['last run']);
+    } catch (error) {
+      console.error('Error formatting last updated date:', error);
+      // Fall back to most recent story
+      if (stories.length > 0) {
+        lastUpdatedText = formatRelativeTime(stories[0].timestamp);
+      }
+    }
+  } else if (stories.length > 0) {
+    // No last run metadata, use most recent story timestamp
+    try {
+      lastUpdatedText = formatRelativeTime(stories[0].timestamp);
+    } catch (error) {
+      console.error('Error formatting story timestamp:', error);
+      lastUpdatedText = 'Unknown';
+    }
+  }
+  document.getElementById('stat-last-updated').textContent = lastUpdatedText;
+  
   // Article count
   const articleCount = stories.length;
   document.getElementById('stat-article-count').textContent = articleCount.toLocaleString();
@@ -102,19 +140,23 @@ function calculateAndDisplayStats() {
   `).join('');
   
   // Oldest article date
-  const oldestStory = stories.reduce((oldest, story) => {
-    const storyDate = new Date(story.timestamp);
-    const oldestDate = new Date(oldest.timestamp);
-    return storyDate < oldestDate ? story : oldest;
-  }, stories[0]);
-  
-  const oldestDate = new Date(oldestStory.timestamp);
-  const formattedDate = oldestDate.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
-  document.getElementById('stat-oldest-date').textContent = formattedDate;
+  if (stories.length > 0) {
+    const oldestStory = stories.reduce((oldest, story) => {
+      const storyDate = new Date(story.timestamp);
+      const oldestDate = new Date(oldest.timestamp);
+      return storyDate < oldestDate ? story : oldest;
+    }, stories[0]);
+    
+    const oldestDate = new Date(oldestStory.timestamp);
+    const formattedDate = oldestDate.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+    document.getElementById('stat-oldest-date').textContent = formattedDate;
+  } else {
+    document.getElementById('stat-oldest-date').textContent = 'No articles';
+  }
 }
 
 // Theme Management
@@ -170,12 +212,35 @@ async function fetchStories() {
 
     const data = await response.json();
     
-    if (!Array.isArray(data)) {
-      throw new Error('Invalid data format');
+    // Handle multiple possible formats
+    let articlesArray = [];
+    dataMetadata = {};
+    
+    if (Array.isArray(data)) {
+      // Format 1: Direct array of stories
+      articlesArray = data;
+    } else if (data.stories && Array.isArray(data.stories)) {
+      // Format 2: Object with "stories" array (current format)
+      articlesArray = data.stories;
+      // Store metadata (last run, etc.)
+      dataMetadata = { ...data };
+      delete dataMetadata.stories; // Remove stories from metadata
+    } else if (data.articles && Array.isArray(data.articles)) {
+      // Format 3: Object with "articles" array (alternative)
+      articlesArray = data.articles;
+      dataMetadata = { ...data };
+      delete dataMetadata.articles;
+    } else {
+      throw new Error('Invalid data format: expected array or object with "stories" or "articles" property');
+    }
+
+    // Validate we have articles
+    if (articlesArray.length === 0) {
+      console.warn('No articles found in the data');
     }
 
     // Sort by timestamp descending (most recent first)
-    stories = data.sort((a, b) => {
+    stories = articlesArray.sort((a, b) => {
       const dateA = new Date(a.timestamp);
       const dateB = new Date(b.timestamp);
       return dateB - dateA;
@@ -186,6 +251,7 @@ async function fetchStories() {
     console.error('Failed to fetch stories:', error);
     hideElement('loading-indicator');
     stories = [];
+    dataMetadata = {};
   }
 }
 
@@ -256,57 +322,100 @@ function getPositivityIndicator(score) {
 
 // Format timestamp to human-readable relative time
 function formatRelativeTime(timestamp) {
-  const now = new Date();
-  const date = new Date(timestamp);
-  const diffMs = now - date;
-  const diffSeconds = Math.floor(diffMs / 1000);
-  const diffMinutes = Math.floor(diffSeconds / 60);
-  const diffHours = Math.floor(diffMinutes / 60);
-  const diffDays = Math.floor(diffHours / 24);
-  const diffWeeks = Math.floor(diffDays / 7);
-  const diffMonths = Math.floor(diffDays / 30);
+  try {
+    if (!timestamp) {
+      return 'Unknown date';
+    }
+    
+    const now = new Date();
+    const date = new Date(timestamp);
+    
+    // Check for invalid date
+    if (isNaN(date.getTime())) {
+      console.warn('Invalid timestamp:', timestamp);
+      return 'Unknown date';
+    }
+    
+    const diffMs = now - date;
+    
+    // Handle future dates
+    if (diffMs < 0) {
+      return 'Just now';
+    }
+    
+    const diffSeconds = Math.floor(diffMs / 1000);
+    const diffMinutes = Math.floor(diffSeconds / 60);
+    const diffHours = Math.floor(diffMinutes / 60);
+    const diffDays = Math.floor(diffHours / 24);
+    const diffWeeks = Math.floor(diffDays / 7);
+    const diffMonths = Math.floor(diffDays / 30);
 
-  if (diffSeconds < 60) {
-    return 'Just now';
-  } else if (diffMinutes < 60) {
-    return diffMinutes === 1 ? '1 minute ago' : `${diffMinutes} minutes ago`;
-  } else if (diffHours < 24) {
-    return diffHours === 1 ? '1 hour ago' : `${diffHours} hours ago`;
-  } else if (diffDays < 7) {
-    return diffDays === 1 ? '1 day ago' : `${diffDays} days ago`;
-  } else if (diffWeeks < 4) {
-    return diffWeeks === 1 ? '1 week ago' : `${diffWeeks} weeks ago`;
-  } else {
-    return diffMonths === 1 ? '1 month ago' : `${diffMonths} months ago`;
+    if (diffSeconds < 60) {
+      return 'Just now';
+    } else if (diffMinutes < 60) {
+      return diffMinutes === 1 ? '1 minute ago' : `${diffMinutes} minutes ago`;
+    } else if (diffHours < 24) {
+      return diffHours === 1 ? '1 hour ago' : `${diffHours} hours ago`;
+    } else if (diffDays < 7) {
+      return diffDays === 1 ? '1 day ago' : `${diffDays} days ago`;
+    } else if (diffWeeks < 4) {
+      return diffWeeks === 1 ? '1 week ago' : `${diffWeeks} weeks ago`;
+    } else {
+      return diffMonths === 1 ? '1 month ago' : `${diffMonths} months ago`;
+    }
+  } catch (error) {
+    console.error('Error formatting relative time:', error, 'Timestamp:', timestamp);
+    return 'Unknown date';
   }
 }
 
-// Infinite scroll handler
+// Infinite scroll handler using Intersection Observer
 function setupInfiniteScroll() {
-  let ticking = false;
-
-  window.addEventListener('scroll', () => {
-    if (!ticking) {
-      window.requestAnimationFrame(() => {
-        const scrollPosition = window.innerHeight + window.scrollY;
-        const threshold = document.body.offsetHeight - 200;
-
-        if (scrollPosition >= threshold && currentIndex < stories.length) {
-          showElement('loading-indicator');
-          
-          // Small delay for visual feedback
-          setTimeout(() => {
-            renderStories(STORIES_PER_LOAD);
-            hideElement('loading-indicator');
-          }, 150);
+  // Clean up existing observer if any
+  if (scrollObserver) {
+    scrollObserver.disconnect();
+  }
+  
+  // Create a sentinel element to observe
+  let sentinel = document.getElementById('scroll-sentinel');
+  if (!sentinel) {
+    sentinel = document.createElement('div');
+    sentinel.id = 'scroll-sentinel';
+    sentinel.style.height = '1px';
+    sentinel.setAttribute('aria-hidden', 'true');
+    const feed = document.getElementById('story-feed');
+    feed.parentNode.insertBefore(sentinel, feed.nextSibling);
+  }
+  
+  // Create Intersection Observer
+  scrollObserver = new IntersectionObserver((entries) => {
+    const entry = entries[0];
+    
+    // Check if sentinel is visible and we have more stories to load
+    if (entry.isIntersecting && currentIndex < stories.length && !isLoadingMore) {
+      isLoadingMore = true;
+      showElement('loading-indicator');
+      
+      // Small delay for visual feedback
+      setTimeout(() => {
+        renderStories(STORIES_PER_LOAD);
+        hideElement('loading-indicator');
+        isLoadingMore = false;
+        
+        // If we've loaded all stories, disconnect the observer
+        if (currentIndex >= stories.length) {
+          scrollObserver.disconnect();
         }
-
-        ticking = false;
-      });
-
-      ticking = true;
+      }, 150);
     }
+  }, {
+    root: null, // viewport
+    rootMargin: '200px', // trigger 200px before sentinel enters viewport
+    threshold: 0
   });
+  
+  // Start observing
+  scrollObserver.observe(sentinel);
 }
 
 // Error state
@@ -420,6 +529,42 @@ function setupEmbedModal() {
   copyBtn.addEventListener('click', copyEmbedCode);
 }
 
+// Stats Modal helpers
+function closeStatsModal() {
+  const modal = document.getElementById('stats-modal');
+  if (modal) modal.classList.add('hidden');
+  document.body.style.overflow = '';
+
+  // Remove #stats hash without creating a new history entry
+  if (window.location.hash === '#stats') {
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+  }
+}
+
+function setupStatsModal() {
+  const modal = document.getElementById('stats-modal');
+  if (!modal) return;
+
+  const closeBtn = document.getElementById('stats-modal-close');
+
+  const closeModal = async () => {
+    closeStatsModal();
+    await showHomePage();
+  };
+
+  closeBtn.addEventListener('click', closeModal);
+
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal();
+  });
+}
+
+
+
 function getEmbedUrl() {
   const themeSelect = document.getElementById('embed-theme');
   const theme = themeSelect.value;
@@ -497,8 +642,56 @@ async function copyEmbedCode() {
   }
 }
 
+// Menu Panel
+function setupMenuPanel() {
+  const menuToggle = document.getElementById('menu-toggle');
+  const menuPanel = document.getElementById('menu-panel');
+  const menuOverlay = document.getElementById('menu-overlay');
+  const menuClose = document.getElementById('menu-close');
+  
+  const openMenu = () => {
+    menuPanel.classList.add('open');
+    menuOverlay.classList.remove('hidden');
+    menuToggle.setAttribute('aria-expanded', 'true');
+    menuOverlay.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    menuClose.focus();
+  };
+  
+  const closeMenu = () => {
+    menuPanel.classList.remove('open');
+    menuOverlay.classList.add('hidden');
+    menuToggle.setAttribute('aria-expanded', 'false');
+    menuOverlay.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    menuToggle.focus();
+  };
+  
+  menuToggle.addEventListener('click', openMenu);
+  menuClose.addEventListener('click', closeMenu);
+  menuOverlay.addEventListener('click', closeMenu);
+  
+  // Close menu when clicking menu items (except theme toggle)
+  const menuItems = menuPanel.querySelectorAll('.menu-item:not(.menu-theme-item)');
+  menuItems.forEach(item => {
+    item.addEventListener('click', () => {
+      // Small delay to allow action to complete
+      setTimeout(closeMenu, 100);
+    });
+  });
+  
+  // Close on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && menuPanel.classList.contains('open')) {
+      closeMenu();
+    }
+  });
+}
+
 // Initialize on load
 document.addEventListener('DOMContentLoaded', () => {
   init();
+  setupMenuPanel();
   setupEmbedModal();
+  setupStatsModal();
 });

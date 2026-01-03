@@ -6,6 +6,19 @@
   <title>Ramah: Good news</title>
   <meta name="description" content="A minimal, trusted good news aggregator presenting positive stories.">
   
+  <!-- Open Graph (replace og-image.svg with a 1200x630 PNG for best compatibility) -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Ramah: Good News">
+  <meta property="og:description" content="A minimal, trusted, good news aggregator presenting positive stories.">
+  <meta property="og:image" content="https://lewdry.github.io/ramah/public/og-image.svg">
+  <meta property="og:url" content="https://lewdry.github.io/ramah/">
+  
+  <!-- Twitter Card (replace og-image.svg with a 1200x630 PNG for best compatibility) -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Ramah: Good News">
+  <meta name="twitter:description" content="A minimal, trusted good news aggregator presenting positive stories.">
+  <meta name="twitter:image" content="https://lewdry.github.io/ramah/public/og-image.svg">
+  
   <!-- Prevent theme flash: set data-theme before any rendering -->
   <script>
     (function() {
@@ -71,14 +84,62 @@
         </h1>
       </div>
       
-      <div class="flex items-center gap-4">
-        <button id="embed-btn" class="text-base-03 hover:text-base-05 transition-colors text-sm" aria-label="Get embed code">
-          Embed
-        </button>
-        <a href="#stats" class="text-base-03 hover:text-base-05 transition-colors text-sm" aria-label="View statistics">
-          Stats
-        </a>
-        
+      <button id="menu-toggle" class="menu-toggle" aria-label="Open menu" aria-expanded="false">
+        <svg class="menu-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+  </header>
+  
+  <!-- Slide-out Menu -->
+  <div id="menu-overlay" class="menu-overlay hidden" aria-hidden="true"></div>
+  <nav id="menu-panel" class="menu-panel" aria-label="Main menu">
+    <div class="menu-header">
+      <span class="text-base-03 text-sm font-medium uppercase tracking-wide">Menu</span>
+      <button id="menu-close" class="menu-close" aria-label="Close menu">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+    
+    <div class="menu-items">
+      <button id="embed-btn" class="menu-item" aria-label="Get embed code">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="16 18 22 12 16 6"></polyline>
+          <polyline points="8 6 2 12 8 18"></polyline>
+        </svg>
+        <span>Embed</span>
+      </button>
+      
+      <a href="#stats" class="menu-item" aria-label="View statistics">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="18" y1="20" x2="18" y2="10"></line>
+          <line x1="12" y1="20" x2="12" y2="4"></line>
+          <line x1="6" y1="20" x2="6" y2="14"></line>
+        </svg>
+        <span>Stats</span>
+      </a>
+      
+      <div class="menu-item menu-theme-item">
+        <div class="menu-theme-label">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <span>Theme</span>
+        </div>
         <label class="theme-toggle cursor-pointer" aria-label="Toggle dark mode">
           <input type="checkbox" id="theme-toggle-input" class="sr-only">
           <div class="toggle-track" role="switch" aria-checked="false">
@@ -100,7 +161,7 @@
         </label>
       </div>
     </div>
-  </header>
+  </nav>
   
   <main class="max-w-3xl mx-auto px-4 lg:px-8 py-8">
     <!-- Home Page (Story Feed) -->
@@ -120,42 +181,49 @@
       </div>
     </div>
 
-    <!-- Stats Page -->
-    <div id="page-stats" class="hidden">
-      <div class="mb-8">
-        <a href="#" class="text-base-03 hover:text-base-05 transition-colors text-sm flex items-center gap-2">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="19" y1="12" x2="5" y2="12"></line>
-            <polyline points="12 19 5 12 12 5"></polyline>
-          </svg>
-          Back to feed
-        </a>
-      </div>
-      
-      <h2 class="text-2xl lg:text-3xl font-medium mb-8">Stats</h2>
-      
-      <div id="stats-loading" class="flex justify-center py-8">
-        <div class="spinner" role="status" aria-label="Loading stats">
-          <span class="sr-only">Loading stats...</span>
+    <!-- Stats Modal -->
+    <div id="stats-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="stats-title">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="stats-title" class="text-xl font-medium">Stats</h2>
+          <button id="stats-modal-close" class="modal-close" aria-label="Close stats">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
         </div>
-      </div>
-      
-      <div id="stats-content" class="hidden space-y-8">
-        <div class="stat-card">
-          <h3 class="text-base-03 text-sm uppercase tracking-wide mb-2">Articles</h3>
-          <p id="stat-article-count" class="text-3xl font-medium">—</p>
-        </div>
-        
-        <div class="stat-card">
-          <h3 class="text-base-03 text-sm uppercase tracking-wide mb-2">Sources</h3>
-          <ul id="stat-sources-list" class="space-y-2">
-            <!-- Source counts inserted here -->
-          </ul>
-        </div>
-        
-        <div class="stat-card">
-          <h3 class="text-base-03 text-sm uppercase tracking-wide mb-2">Oldest Article</h3>
-          <p id="stat-oldest-date" class="text-xl font-medium">—</p>
+
+        <div class="modal-body">
+          <div id="stats-loading" class="flex justify-center py-8">
+            <div class="spinner" role="status" aria-label="Loading stats">
+              <span class="sr-only">Loading stats...</span>
+            </div>
+          </div>
+
+          <div id="stats-content" class="hidden space-y-8">
+            <div class="stat-card">
+              <h3 class="text-base-03 text-sm uppercase tracking-wide mb-2">Last Updated</h3>
+              <p id="stat-last-updated" class="text-xl font-medium">—</p>
+            </div>
+
+            <div class="stat-card">
+              <h3 class="text-base-03 text-sm uppercase tracking-wide mb-2">Articles</h3>
+              <p id="stat-article-count" class="text-3xl font-medium">—</p>
+            </div>
+
+            <div class="stat-card">
+              <h3 class="text-base-03 text-sm uppercase tracking-wide mb-2">Sources</h3>
+              <ul id="stat-sources-list" class="space-y-2">
+                <!-- Source counts inserted here -->
+              </ul>
+            </div>
+
+            <div class="stat-card">
+              <h3 class="text-base-03 text-sm uppercase tracking-wide mb-2">Oldest Article</h3>
+              <p id="stat-oldest-date" class="text-xl font-medium">—</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -1,0 +1,26 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff"/>
+      <stop offset="100%" style="stop-color:#f5f5f5"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  
+  <!-- Content container -->
+  <g transform="translate(600, 315)">
+    <!-- Triangle icon -->
+    <text x="0" y="-60" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="120" fill="#718c00">△</text>
+    
+    <!-- Title -->
+    <text x="0" y="40" text-anchor="middle" font-family="IBM Plex Sans, system-ui, -apple-system, sans-serif" font-size="72" font-weight="500" fill="#4d4d4c">Ramah</text>
+    
+    <!-- Subtitle -->
+    <text x="0" y="110" text-anchor="middle" font-family="IBM Plex Sans, system-ui, -apple-system, sans-serif" font-size="36" fill="#8e908c">Good news</text>
+  </g>
+  
+  <!-- Bottom tagline -->
+  <text x="600" y="560" text-anchor="middle" font-family="Merriweather, Georgia, serif" font-size="24" fill="#969896">A minimal, trusted good news aggregator</text>
+</svg>
